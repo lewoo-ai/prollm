@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 업로드 후 Google Lens 검색</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .result-container p {
+            margin: 5px 0;
+        }
+        img {
+            max-width: 100%;
+        }
+        #uploadedImage {
+            max-width: 100%;
+            height: auto; /* 비율을 유지하면서 크기를 자동으로 맞춤 */
+            display: block;
+            margin: 10px auto;
+            object-fit: contain; /* 이미지가 비율을 유지하면서 지정된 크기에 맞춰지도록 함 */
+            border: 1px solid #ddd; /* 이미지 테두리 */
+            padding: 5px; /* 이미지에 여백 추가 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>이미지 업로드 후 Google Lens 검색</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="fileInput">이미지 파일 선택:</label>
+            <input type="file" id="fileInput" name="file" accept="image/*" required>
+            <button type="submit">업로드 및 검색</button>
+        </form>
+
+        <div id="resultContainer" class="result-container" style="display:none;">
+            <h3>검색 결과</h3>
+            <p><strong>이미지 분석 완료:</strong></p>
+            <p><strong>이미지 URL:</strong> <span id="imageUrl"></span></p>
+            <p><strong>첫 번째 타이틀:</strong> <span id="firstTitle"></span></p>
+            <img id="uploadedImage" src="" alt="Uploaded Image">
+        </div>
+
+        <div id="errorContainer" class="result-container" style="display:none; color: red;">
+            <h3>오류 발생</h3>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultContainer = document.getElementById('resultContainer');
+        const errorContainer = document.getElementById('errorContainer');
+        const imageUrlElem = document.getElementById('imageUrl');
+        const firstTitleElem = document.getElementById('firstTitle');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const errorMessageElem = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // 결과가 정상적으로 반환되면 결과 표시
+                    resultContainer.style.display = 'block';
+                    errorContainer.style.display = 'none';
+                    imageUrlElem.textContent = result.image_url;
+                    firstTitleElem.textContent = result.first_title;
+                    uploadedImage.src = result.image_url; // 이미지 URL 설정
+                    uploadedImage.style.display = 'block'; // 이미지가 보이도록 설정
+                } else {
+                    // 오류 발생 시 오류 메시지 표시
+                    resultContainer.style.display = 'none';
+                    errorContainer.style.display = 'block';
+                    errorMessageElem.textContent = result.error || '알 수 없는 오류가 발생했습니다.';
+                }
+            } catch (error) {
+                // 네트워크 오류 처리
+                resultContainer.style.display = 'none';
+                errorContainer.style.display = 'block';
+                errorMessageElem.textContent = '서버에 연결할 수 없습니다. 다시 시도해 주세요.';
+            }
+        });
+    </script>
+</body>
+</html>

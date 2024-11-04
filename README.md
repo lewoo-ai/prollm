@@ -1,1 +1,1 @@
-# prollm
+# TrandNavi_AI

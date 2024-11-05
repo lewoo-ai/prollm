@@ -38,3 +38,13 @@ def format_product_info(items):
         )
         formatted_items.append(formatted_item)
     return "\n".join(formatted_items)
+
+def get_price_comparison(query):
+    items = get_naver_shopping_data(query, display=10)  # 가격 비교를 위해 더 많은 상품을 가져옴
+    if not items:
+        return "상품 정보를 찾을 수 없습니다."
+
+    prices = [item['lprice'] for item in items]
+    min_price = min(prices)
+    max_price = max(prices)
+    return min_price, max_price

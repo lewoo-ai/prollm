@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, Response
-from app.services.naver_shopping_service import get_naver_shopping_data, format_product_info
+from app.services.naver_shopping_service import get_naver_shopping_data, format_product_info, get_price_comparison
 from app.services.trend_service import get_related_topics  # 트렌드 서비스 추가
 from app.llm_config import llm, prompt, trend_template, extract_keyword  # 트렌드 템플릿 및 키워드 추출 함수 추가
 from app.redis_handler import RedisChatMemory
@@ -52,6 +52,13 @@ def chat():
                 error_message = "트렌드 정보를 가져오는 데 실패했습니다."
                 redis_memory.save_context(user_message, error_message)
                 return jsonify({"response": error_message}), 500
+            
+             # 가격 비교 요청 처리
+    if "가격 비교" in user_message:
+        min_price, max_price = get_price_comparison(user_message)
+        price_comparison_response = f"최저가: {min_price}원, 최고가: {max_price}원"
+        redis_memory.save_context(user_message, price_comparison_response)
+        return jsonify({"response": price_comparison_response})
 
     # 네이버 쇼핑 API로 상품 정보 가져오기
     items = get_naver_shopping_data(user_message)
